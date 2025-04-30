@@ -1,0 +1,37 @@
+name: Build PDF
+
+on:
+  push:
+    paths:
+      - 'test123.md'
+  workflow_dispatch:
+
+jobs:
+  build-pdf:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create output directory
+        run: mkdir -p output
+
+      - name: Download Eisvogel template
+        run: |
+          mkdir -p ~/.pandoc/templates
+          curl -L https://raw.githubusercontent.com/Wandmalfarbe/pandoc-latex-template/master/eisvogel.latex -o ~/.pandoc/templates/eisvogel.latex
+
+      - name: Build PDF using Docker and Pandoc
+        run: |
+          docker run --rm \
+            --volume "$PWD:/data" \
+            --user $(id -u):$(id -g) \
+            pandoc/extra test123.md -o output/example.pdf \
+              --template eisvogel --listings
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: example-pdf
+          path: output/example.pdf
