@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - '**/writeup.md'
+      - '.github/workflows/build-pdf.yaml'
   workflow_dispatch:
 
 jobs:
