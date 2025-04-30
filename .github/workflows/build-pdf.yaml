@@ -1,14 +1,32 @@
-name: Build PDF
+name: Build Writeups
 
 on:
   push:
     paths:
-      - 'test123.md'
+      - '**/writeup.md'
   workflow_dispatch:
 
 jobs:
-  build-pdf:
+  discover-writeups:
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Find writeups
+        id: set-matrix
+        run: |
+          dirs=$(find . -mindepth 2 -maxdepth 2 -name writeup.md -exec dirname {} \; | sed 's|^\./||' | jq -R . | jq -s .)
+          echo "matrix={\"dir\":$dirs}" >> $GITHUB_OUTPUT
+
+  build-pdfs:
+    needs: discover-writeups
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{fromJson(needs.discover-writeups.outputs.matrix)}}
 
     steps:
       - name: Checkout repository
@@ -27,11 +45,12 @@ jobs:
           docker run --rm \
             --volume "$PWD:/data" \
             --user $(id -u):$(id -g) \
-            pandoc/extra test123.md -o output/example.pdf \
+            pandoc/extra "${{ matrix.dir }}/writeup.md" \
+              -o "output/${{ matrix.dir }}.pdf" \
               --template eisvogel --listings
 
-      - name: Upload PDF artifact
+      - name: Upload PDF
         uses: actions/upload-artifact@v4
         with:
-          name: example-pdf
-          path: output/example.pdf
+          name: ${{ matrix.dir }}-pdf
+          path: output/${{ matrix.dir }}.pdf
