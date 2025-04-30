@@ -19,8 +19,9 @@ jobs:
       - name: Find writeups
         id: set-matrix
         run: |
-          dirs=$(find . -mindepth 2 -maxdepth 2 -name writeup.md -exec dirname {} \; | sed 's|^\./||' | jq -R . | jq -s .)
-          echo "matrix={\"dir\":$dirs}" >> $GITHUB_OUTPUT
+          dirs=$(find . -mindepth 2 -maxdepth 2 -name writeup.md -exec dirname {} \; | sed 's|^\./||')
+          json=$(printf '%s\n' "$dirs" | jq -R . | jq -s '{dir: .}')
+          echo "matrix=$json" >> $GITHUB_OUTPUT
 
   build-pdfs:
     needs: discover-writeups
