@@ -57,6 +57,7 @@ jobs:
           path: output/${{ matrix.dir }}.pdf
 
   upload-release:
+    if: github.ref == 'refs/heads/main'
     needs: build-pdfs
     runs-on: ubuntu-latest
 
