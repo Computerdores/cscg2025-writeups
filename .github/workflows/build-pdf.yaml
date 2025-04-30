@@ -53,5 +53,25 @@ jobs:
       - name: Upload PDF
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.dir }}-pdf
+          name: ${{ matrix.dir }}.pdf
           path: output/${{ matrix.dir }}.pdf
+
+  upload-release:
+    needs: build-pdfs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all-pdfs
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Auto Writeups Release
+          tag_name: writeups-latest
+          files: all-pdfs/**/*.pdf
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
