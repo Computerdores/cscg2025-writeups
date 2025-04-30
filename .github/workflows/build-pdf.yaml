@@ -1,0 +1,80 @@
+name: Build Writeups
+
+on:
+  push:
+    paths:
+      - '**/writeup.md'
+      - '.github/workflows/build-pdf.yaml'
+  workflow_dispatch:
+
+jobs:
+  discover-writeups:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Find writeups
+        id: set-matrix
+        run: |
+          dirs=$(find . -mindepth 2 -maxdepth 2 -name writeup.md -exec dirname {} \; | sed 's|^\./||' | jq -R . | jq -c -s .)
+          echo "matrix={\"dir\":$dirs}" >> $GITHUB_OUTPUT
+
+  build-pdfs:
+    needs: discover-writeups
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{fromJson(needs.discover-writeups.outputs.matrix)}}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create output directory
+        run: mkdir -p output
+
+      - name: Download Eisvogel template
+        run: |
+          mkdir -p ~/.pandoc/templates
+          curl -L https://raw.githubusercontent.com/Wandmalfarbe/pandoc-latex-template/master/eisvogel.latex -o ~/.pandoc/templates/eisvogel.latex
+
+      - name: Build PDF using Docker and Pandoc
+        run: |
+          docker run --rm \
+            --volume "$PWD:/data" \
+            --user $(id -u):$(id -g) \
+            pandoc/extra "${{ matrix.dir }}/writeup.md" \
+              -o "output/${{ matrix.dir }}.pdf" \
+              --template eisvogel --listings
+
+      - name: Upload PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.dir }}.pdf
+          path: output/${{ matrix.dir }}.pdf
+
+  upload-release:
+    needs: build-pdfs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all-pdfs
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Writeup PDFs
+          tag_name: writeups-latest
+          files: all-pdfs/**/*.pdf
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+permissions:
+  contents: write
