@@ -39,7 +39,8 @@ jobs:
       - name: Download Eisvogel template
         run: |
           mkdir -p ~/.pandoc/templates
-          curl -L https://raw.githubusercontent.com/Wandmalfarbe/pandoc-latex-template/master/eisvogel.latex -o ~/.pandoc/templates/eisvogel.latex
+          curl -L https://github.com/Wandmalfarbe/pandoc-latex-template/releases/download/v3.2.0/Eisvogel.zip -o Eisvogel.zip
+          unzip Eisvogel.zip
 
       - name: Build PDF using Docker and Pandoc
         run: |
@@ -57,6 +58,7 @@ jobs:
           path: output/${{ matrix.dir }}.pdf
 
   upload-release:
+    if: github.ref == 'refs/heads/main'
     needs: build-pdfs
     runs-on: ubuntu-latest
 
