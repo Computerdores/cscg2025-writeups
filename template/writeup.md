@@ -23,6 +23,12 @@ titlepage-background: "Eisvogel-3.2.0/examples/title-page-custom/background.pdf"
 
 **Flag:** [flag]
 
-# Writeup
+# Solution
 
-<writeup_goes_here>
+<!-- this section should describe the vulnerability or security problem and show my solution and the path to it in detail -->
+
+[solution]
+
+# Mitigation
+
+[mitigation]
