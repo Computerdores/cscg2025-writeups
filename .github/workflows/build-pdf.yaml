@@ -75,6 +75,8 @@ jobs:
           tag_name: writeups-latest
           files: all-pdfs/**/*.pdf
           generate_release_notes: true
+          overwrite: true
+          prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
