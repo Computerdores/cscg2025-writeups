@@ -49,8 +49,7 @@ jobs:
             --user $(id -u):$(id -g) \
             pandoc/extra "${{ matrix.dir }}/writeup.md" \
               -o "output/${{ matrix.dir }}.pdf" \
-              --template eisvogel --listings \
-              -M titlepage-background="Eisvogel-3.2.0/examples/title-page-custom/background.pdf"
+              --template eisvogel --listings
 
       - name: Upload PDF
         uses: actions/upload-artifact@v4
