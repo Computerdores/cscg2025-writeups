@@ -1,11 +1,7 @@
 ---
 title: "Writeup 1"
-abstract: |
-  This is Writeup number 1.
-
-  There can be a second paragraph here.
-titlepage: true # only necessary if abstract was specified
-toc: true
+subtitle: "The First Writeup"
+titlepage: true
 author: [ "Jann Stute" ]
 date: "2025-05-01"
 ---
