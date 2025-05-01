@@ -94,7 +94,7 @@ This way we should be to introduce `<` into the output *after* that character wa
 
 `[argument$]` allows use to use arguments out of order, which will make it simpler to print a precise number of characters. However there "may be no gaps in the numbers of arguments specified using '$';" (see `man 3 printf`), meaning if we use the second argument this way, we also need to use the first argument this way.
 
-`[width]` is useful, because it allows us to specify how long the printed value should be. This allows us to make a smaller payload, because instead of writing 30 arbitrary characters we can use something like `%30i` to print 30 characters. In the real world this would be useful, because it would make the malicously crafted URL shorter and thus less suspicious, for us it is useful because it makes this writeup nicer to read 😃.
+`[width]` is useful, because it allows us to specify how long the printed value should be. This allows us to make a smaller payload, because instead of writing 30 arbitrary characters we can use something like `%30i` to print 30 characters. In the real world this would be useful, because it would make the malicously crafted URL shorter and thus less suspicious, for us it is useful because it makes this writeup nicer to read :)
 
 Finally, the `[length modifier]` allows us to specify the bit size of the argument. Why this is useful will become apparent later, but for now just keep in mind that it exists.
 
