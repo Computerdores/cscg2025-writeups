@@ -1,6 +1,6 @@
 ---
-title: "Challenge Writeup: '<challenge_title>'"
-subtitle: "A writeup for the '<challenge_title>' challenge from the CSCG 2025."
+title: "Challenge Writeup: '[challenge_title]'"
+subtitle: "A writeup for the '[challenge_title]' challenge from the CSCG 2025."
 titlepage: true
 author: [ "Jann Stute" ]
 date: "2025-05-01"
@@ -13,13 +13,15 @@ titlepage-background: "Eisvogel-3.2.0/examples/title-page-custom/background.pdf"
 
 # Challenge
 
-> <challenge_description>
+> [challenge_description]
 
-**Author:** <challenge_author>
+**Author:** [challenge_author]
 
-**Categories:** <challenge_categories>
+**Difficulty:** [challenge_difficulty]
 
-**Flag:** <challenge_flag>
+**Categories:** [challenge_categories]
+
+**Flag:** [flag]
 
 # Writeup
 
